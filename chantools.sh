@@ -1,5 +1,8 @@
 #!/bin/bash
 
+## text color
+BLUE="$(printf '\033[34m')"
+
 ## directories
 if [[ ! -d ".server" ]]; then
 	mkdir -p ".server"
@@ -259,8 +262,8 @@ menu_tunnel() {
 site_fb() {
 	cat <<- EOF
 
-		[1] My Facebook Page 
-
+		[01] My Facebook Page 
+		[00]  Exit
 	EOF
 
 	read -r "Select an option :"
@@ -271,6 +274,7 @@ site_fb() {
 	else
 		echo -ne "\nInvalid Option. Try Again."
 		{ sleep 1; clear; banner; site_fb; }
+		
 	fi
 }
 
@@ -282,13 +286,18 @@ ch_main_menu() {
 
 		[01] Facebook 
 
-EOF
+		EOF
 	
-	read -r "Select an option : "
+	read -r "Select an option : ${BLUE}"
 
 	if [[ "$REPLY" == 1 || "$REPLY" == 01 ]]; then
 		site_fb
-		fi 
+		elif [[ "$REPLY" == 0 || "$REPLY" == 00 ]]; then
+		exit_msg
+	else
+		echo -ne "Invalid Option, Try Again..."
+		{ sleep 1; main_menu; }
+	fi
 }
 
 ## chantools main
